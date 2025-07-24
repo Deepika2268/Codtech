@@ -1,40 +1,95 @@
-import java.io.BufferedReader;
-import java.io.InputStreamReader;
-import java.net.HttpURLConnection;
-import java.net.URL;
-import org.json.JSONObject;
+import java.io.IOException;﻿
+import java.net.URI;﻿
+import java.net.http.HttpClient;﻿
+import java.net.http.HttpRequest;﻿
+import java.net.http.HttpResponse;﻿
+import java.time.Duration;﻿
+import org.json.JSONObject;﻿
 
-public class RestApiClient {
-    public static void main(String[] args) {
-        try {
-            String url = "https://jsonplaceholder.typicode.com/posts/1";
-            HttpURLConnection conn = (HttpURLConnection) new URL(url).openConnection();
-            conn.setRequestMethod("GET");
+public class WeatherApiClient {﻿
+    // Replace with your OpenWeatherMap API key (free tier available)﻿
+    private static final String API_KEY = "YOUR_API_KEY";﻿
+    private static final String BASE_URL = "https://api.openweathermap.org/data/2.5/weather";﻿
+﻿
+    public static void main(String[] args) {﻿
+        if (args.length == 0) {﻿
+            System.out.println("Please provide a city name as an argument.");﻿
+            return;﻿
+        }﻿
+﻿
+        String cityName = args[0];﻿
+        try {﻿
+            String weatherData = fetchWeatherData(cityName);﻿
+            displayWeatherInfo(weatherData);﻿
+        } catch (Exception e) {﻿
+            System.err.println("Error fetching weather data: " + e.getMessage());﻿
+        }﻿
+    }﻿
 
-            BufferedReader in = new BufferedReader(new InputStreamReader(conn.getInputStream()));
-            StringBuilder response = new StringBuilder();
-            String line;
-            while ((line = in.readLine()) != null) {
-                response.append(line);
-            }
-            in.close();
+    private static String fetchWeatherData(String cityName) throws IOException, InterruptedException {﻿
+        String requestUrl = String.format("%s?q=%s&appid=%s&units=metric", BASE_URL, cityName, API_KEY);﻿
+﻿
+        HttpClient client = HttpClient.newBuilder()﻿
+                .version(HttpClient.Version.HTTP_2)﻿
+                .connectTimeout(Duration.ofSeconds(10))﻿
+                .build();﻿
+﻿
+        HttpRequest request = HttpRequest.newBuilder()﻿
+                .uri(URI.create(requestUrl))﻿
+                .GET()﻿
+                .build();﻿
+﻿
+        HttpResponse<String> response = client.send(request, HttpResponse.BodyHandlers.ofString());﻿
+﻿
+        if (response.statusCode() != 200) {﻿
+            throw new RuntimeException("API request failed with status code: " + response.statusCode());﻿
+        }﻿
+﻿
+        return response.body();﻿
+    }﻿
 
-            JSONObject json = new JSONObject(response.toString());
-            System.out.println("Post ID   : " + json.getInt("id"));
-            System.out.println("User ID   : " + json.getInt("userId"));
-            System.out.println("Title     : " + json.getString("title"));
-            System.out.println("Body      : " + json.getString("body"));
-        } catch (Exception e) {
-            System.out.println("Error: " + e.getMessage());
-        }
-    }
-}
+    private static void displayWeatherInfo(String jsonResponse) {﻿
+        JSONObject jsonObject = new JSONObject(jsonResponse);﻿
+﻿
+        // Extract main weather data﻿
+        JSONObject main = jsonObject.getJSONObject("main");﻿
+        JSONObject weather = jsonObject.getJSONArray("weather").getJSONObject(0);﻿
+        JSONObject wind = jsonObject.getJSONObject("wind");﻿
+﻿
+        String cityName = jsonObject.getString("name");﻿
+        String weatherDescription = weather.getString("description");﻿
+        double temperature = main.getDouble("temp");﻿
+        double feelsLike = main.getDouble("feels_like");﻿
+        int humidity = main.getInt("humidity");﻿
+        double windSpeed = wind.getDouble("speed");﻿
+﻿
+        System.out.println("\nWeather Information for " + cityName);﻿
+        System.out.println("=================================");﻿
+        System.out.printf("Current Conditions: %s\n", weatherDescription);﻿
+        System.out.printf("Temperature: %.1f°C (Feels like %.1f°C)\n", temperature, feelsLike);﻿
+        System.out.printf("Humidity: %d%%\n", humidity);﻿
+        System.out.printf("Wind Speed: %.1f m/s\n", windSpeed);﻿
+        System.out.println("=================================");﻿
+    }﻿
+}﻿
+
+Required Dependencies:﻿
+<dependency>﻿
+    <groupId>org.json</groupId>﻿
+    <artifactId>json</artifactId>﻿
+    <version>20231013</version>﻿
+</dependency>﻿
+
+Compile and Run:﻿
+javac WeatherApiClient.java﻿
+java WeatherApiClient "London"﻿
 
 
-
-Add org.json library if required. If you're using Maven, include:
-<dependency>
-    <groupId>org.json</groupId>
-    <artifactId>json</artifactId>
-    <version>20210307</version>
-</dependency>
+Output:﻿
+Weather Information for London﻿
+=================================﻿
+Current Conditions: scattered clouds﻿
+Temperature: 18.5°C (Feels like 17.8°C)﻿
+Humidity: 65%﻿
+Wind Speed: 3.1 m/s﻿
+=================================
