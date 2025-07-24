@@ -1,34 +1,118 @@
 import java.io.*;
 import java.util.Scanner;
 
-public class FileUtility {
-    public static void main(String[] args) throws IOException {
-        Scanner scanner = new Scanner(System.in);
-        String fileName = "example.txt";
+public class Main {
 
-        // Write to file
-        System.out.print("Enter text to write to file: ");
-        String content = scanner.nextLine();
-        FileWriter writer = new FileWriter(fileName);
-        writer.write(content + "\n");
-        writer.close();
-        System.out.println("File written successfully.");
+    static Scanner scanner = new Scanner(System.in);
+    static String filePath;
 
-        // Append to file
-        System.out.print("Enter text to append to file: ");
-        String appendText = scanner.nextLine();
-        FileWriter appender = new FileWriter(fileName, true);
-        appender.write(appendText + "\n");
-        appender.close();
-        System.out.println("Content appended successfully.");
+    public static void main(String[] args) {
+        System.out.print("Enter the file name to work with (e.g., notes.txt): ");
+        filePath = scanner.nextLine().trim();
 
-        // Read file
-        System.out.println("--- FILE CONTENT ---");
-        BufferedReader reader = new BufferedReader(new FileReader(fileName));
-        String line;
-        while ((line = reader.readLine()) != null) {
-            System.out.println(line);
+        int choice;
+        do {
+            System.out.println("\n--- FILE HANDLING UTILITY ---");
+            System.out.println("1. Write to File");
+            System.out.println("2. Read from File");
+            System.out.println("3. Append to File");
+            System.out.println("4. Delete File");
+            System.out.println("5. Rename File");
+            System.out.println("6. Exit");
+            System.out.print("Enter your choice: ");
+
+            choice = scanner.nextInt();
+            scanner.nextLine(); // consume newline
+
+            switch (choice) {
+                case 1 -> writeFile();
+                case 2 -> readFile();
+                case 3 -> appendFile();
+                case 4 -> deleteFile();
+                case 5 -> renameFile();
+                case 6 -> System.out.println("Exiting...");
+                default -> System.out.println("Invalid choice! Try again.");
+            }
+        } while (choice != 6);
+    }
+
+    public static void writeFile() {
+        try (BufferedWriter writer = new BufferedWriter(new FileWriter(filePath))) {
+            System.out.println("Enter content to write (type 'END' to finish):");
+            String line;
+            while (!(line = scanner.nextLine()).equals("END")) {
+                writer.write(line);
+                writer.newLine();
+            }
+            System.out.println("File written successfully.");
+        } catch (IOException e) {
+            System.out.println("Error writing to file: " + e.getMessage());
         }
-        reader.close();
+    }
+
+    public static void readFile() {
+        try (BufferedReader reader = new BufferedReader(new FileReader(filePath))) {
+            System.out.println("\n--- FILE CONTENT ---");
+            String line;
+            while ((line = reader.readLine()) != null) {
+                System.out.println(line);
+            }
+            System.out.println("--- END OF FILE ---\n");
+        } catch (FileNotFoundException e) {
+            System.out.println("File not found. Please write to it first.");
+        } catch (IOException e) {
+            System.out.println("Error reading file: " + e.getMessage());
+        }
+    }
+
+    public static void appendFile() {
+        try (BufferedWriter writer = new BufferedWriter(new FileWriter(filePath, true))) {
+            System.out.println("Enter content to append (type 'END' to finish):");
+            String line;
+            while (!(line = scanner.nextLine()).equals("END")) {
+                writer.write(line);
+                writer.newLine();
+            }
+            System.out.println("Content appended successfully.");
+        } catch (IOException e) {
+            System.out.println("Error appending to file: " + e.getMessage());
+        }
+    }
+
+    public static void deleteFile() {
+        File file = new File(filePath);
+        if (file.exists()) {
+            if (file.delete()) {
+                System.out.println("File deleted successfully.");
+            } else {
+                System.out.println("Failed to delete the file.");
+            }
+        } else {
+            System.out.println("File does not exist.");
+        }
+    }
+
+    public static void renameFile() {
+        System.out.print("Enter new file name (e.g., newname.txt): ");
+        String newFileName = scanner.nextLine().trim();
+        File oldFile = new File(filePath);
+        File newFile = new File(newFileName);
+
+        if (!oldFile.exists()) {
+            System.out.println("Original file does not exist.");
+            return;
+        }
+
+        if (newFile.exists()) {
+            System.out.println("A file with the new name already exists.");
+            return;
+        }
+
+        if (oldFile.renameTo(newFile)) {
+            System.out.println("File renamed successfully to " + newFileName);
+            filePath = newFileName;
+        } else {
+            System.out.println("Failed to rename the file.");
+        }
     }
 }
