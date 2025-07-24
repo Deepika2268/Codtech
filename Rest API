@@ -1,0 +1,40 @@
+import java.io.BufferedReader;
+import java.io.InputStreamReader;
+import java.net.HttpURLConnection;
+import java.net.URL;
+import org.json.JSONObject;
+
+public class RestApiClient {
+    public static void main(String[] args) {
+        try {
+            String url = "https://jsonplaceholder.typicode.com/posts/1";
+            HttpURLConnection conn = (HttpURLConnection) new URL(url).openConnection();
+            conn.setRequestMethod("GET");
+
+            BufferedReader in = new BufferedReader(new InputStreamReader(conn.getInputStream()));
+            StringBuilder response = new StringBuilder();
+            String line;
+            while ((line = in.readLine()) != null) {
+                response.append(line);
+            }
+            in.close();
+
+            JSONObject json = new JSONObject(response.toString());
+            System.out.println("Post ID   : " + json.getInt("id"));
+            System.out.println("User ID   : " + json.getInt("userId"));
+            System.out.println("Title     : " + json.getString("title"));
+            System.out.println("Body      : " + json.getString("body"));
+        } catch (Exception e) {
+            System.out.println("Error: " + e.getMessage());
+        }
+    }
+}
+
+
+
+Add org.json library if required. If you're using Maven, include:
+<dependency>
+    <groupId>org.json</groupId>
+    <artifactId>json</artifactId>
+    <version>20210307</version>
+</dependency>
