@@ -1,0 +1,34 @@
+import java.io.*;
+import java.util.Scanner;
+
+public class FileUtility {
+    public static void main(String[] args) throws IOException {
+        Scanner scanner = new Scanner(System.in);
+        String fileName = "example.txt";
+
+        // Write to file
+        System.out.print("Enter text to write to file: ");
+        String content = scanner.nextLine();
+        FileWriter writer = new FileWriter(fileName);
+        writer.write(content + "\n");
+        writer.close();
+        System.out.println("File written successfully.");
+
+        // Append to file
+        System.out.print("Enter text to append to file: ");
+        String appendText = scanner.nextLine();
+        FileWriter appender = new FileWriter(fileName, true);
+        appender.write(appendText + "\n");
+        appender.close();
+        System.out.println("Content appended successfully.");
+
+        // Read file
+        System.out.println("--- FILE CONTENT ---");
+        BufferedReader reader = new BufferedReader(new FileReader(fileName));
+        String line;
+        while ((line = reader.readLine()) != null) {
+            System.out.println(line);
+        }
+        reader.close();
+    }
+}
